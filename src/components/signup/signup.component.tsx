@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Input from '../input/input.component'
 
 const SignUp=()=>{
@@ -47,18 +48,18 @@ const SignUp=()=>{
     })
       setDisabled(signUpData['password']&&signUpData['password']===signUpData['repassword']?false:true)
     },[signUpData,signUpData])
-  
+    const { t } = useTranslation();
     return(
         <div className='container'>
           {
             !successRequestStatus?(
                 <form className='col-lg-6 col-md-8 offset-lg-3  offset-md-2 card mt-5' data-testid='form-container' onSubmit={handleSubmit}>
                 <div className='card-header'>
-                 <h1 className='text-center'>Heading For Sign Up</h1>
+                 <h1 className='text-center'>{t('headingTitle')}</h1>
                  </div>
                 <div className='card-body'>
                   <Input 
-                    label='User Name'
+                    label={t("userName")}
                     type='text' 
                     value={signUpData['username']} 
                     name='username' 
@@ -68,7 +69,7 @@ const SignUp=()=>{
                     />
                 
                  <Input 
-                    label='Email'
+                    label={t('email')}
                     type='email' 
                     value={signUpData['email']} 
                     name='email' 
@@ -78,7 +79,7 @@ const SignUp=()=>{
                     />
 
                   <Input 
-                    label='Password'
+                    label={t('password')}
                     type='password' 
                     value={signUpData['password']} 
                     name='password' 
@@ -88,7 +89,7 @@ const SignUp=()=>{
                     />
 
                   <Input 
-                    label='Retype Password'
+                    label={t('retypePassword')}
                     type='password' 
                     value={signUpData['repassword']} 
                     name='repassword' 
@@ -100,7 +101,7 @@ const SignUp=()=>{
                 <div  className='mb-3'>
                   <button type='submit' name='submit' disabled={loading?true:disabled} className='btn btn-primary'>
                    {loading&&<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>} 
-                      Submit
+                      {t('submit')}
                   </button>
                 </div>
                 </div>
@@ -108,7 +109,7 @@ const SignUp=()=>{
               </form>
             ) :(        
                 <div className="alert alert-success mt-5" role="alert">
-                     Activation Link Will send to your following mail! 
+                     {t('activationLinkMsg')}
                 </div>
             )       
           }  

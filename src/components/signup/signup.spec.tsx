@@ -3,12 +3,17 @@ import SignUp from './signup.component'
 import userEvent from '@testing-library/user-event'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
+import {TRANSLATIONS_DE} from '../../translations/de/translations'
+import {TRANSLATIONS_EN} from '../../translations/en/translations'
 describe('sign up page',()=>{
    describe('layout',()=>{
       it('has header',()=>{
          render(<SignUp/>)
-         const header=screen.queryByRole('heading',{name:'Heading For Sign Up'})
-         expect(header).toBeInTheDocument()    
+         waitFor(()=>{
+            const header=screen.queryByRole('heading',{name:'Heading For Sign Up'})
+            expect(header).toBeInTheDocument()    
+         })
+         
       })
 
       it('has input with label text called Username',()=>{
@@ -188,6 +193,21 @@ describe('sign up page',()=>{
          expect(errorSpan).toBeInTheDocument()
       })
 
+   })
+
+   describe('translations',()=>{
+      it('intitally display english language when loading the form',()=>{
+         render(<SignUp/>)
+        
+           expect(screen.queryByRole('heading',{name:'Heading For Sign Up'})).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.userName)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.email)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.password)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.retypePassword)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.submit)).toBeInTheDocument()
+         
+        
+      })
    })
  
 })
