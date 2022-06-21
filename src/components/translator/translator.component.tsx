@@ -14,8 +14,8 @@ const Translator=()=>{
         <div className='container'>
             <div className='d-flex justify-content-center mt-3 '>
                <div>
-                   <EnglandFlagIcon style={styleIcon}  onClick={()=>handleLangChange('en')}/>
-                   <GermanFlagIcon  style={styleIcon}  onClick={()=>handleLangChange('de')}/>
+                   <EnglandFlagIcon data-testid='en-flag' style={styleIcon}  onClick={()=>handleLangChange('en')}/>
+                   <GermanFlagIcon  data-testid='de-flag' style={styleIcon}  onClick={()=>handleLangChange('de')}/>
                </div>
               
             </div>

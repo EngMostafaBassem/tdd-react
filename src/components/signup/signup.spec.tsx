@@ -1,10 +1,40 @@
-import {screen,render,waitFor, act} from '@testing-library/react'
+import {screen,render,waitFor, act, waitForElementToBeRemoved} from '@testing-library/react'
 import SignUp from './signup.component'
 import userEvent from '@testing-library/user-event'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 import {TRANSLATIONS_DE} from '../../translations/de/translations'
 import {TRANSLATIONS_EN} from '../../translations/en/translations'
+import i18n from '../../translations/i18n';
+import Translator from '../translator/translator.component'
+
+
+
+let expectedBody:any={}
+let countRequest=0
+let acceptlangHeader=''
+
+const server = setupServer(
+   // Describe the requests to mock.
+   rest.post('/api/1.0/users', (req, res, ctx) => {
+   expectedBody=req.body;
+   acceptlangHeader=req.headers.get('Accept-Langauge') as string
+   countRequest++
+   return res(ctx.status(200))
+   }),
+ )
+
+
+ beforeAll(()=>server.listen())
+ afterAll(()=>server.close())
+ beforeEach(()=>{
+    countRequest=0;   
+    i18n.changeLanguage('en')   
+ })
+ afterEach(()=>{
+    server.resetHandlers()
+ })
+
 describe('sign up page',()=>{
    describe('layout',()=>{
       it('has header',()=>{
@@ -68,16 +98,8 @@ describe('sign up page',()=>{
 
    describe('interaction',()=>{
       let button:any=null
-      let expectedBody:any={}
-      let countRequest=0
-      const server = setupServer(
-         // Describe the requests to mock.
-         rest.post('/api/1.0/users', (req, res, ctx) => {
-         expectedBody=req.body;
-         countRequest++
-         return res(ctx.status(200))
-         }),
-       )
+    
+      
 
       const setup=async()=>{
          render(<SignUp/>)
@@ -92,14 +114,7 @@ describe('sign up page',()=>{
          userEvent.type(rePasswordInput,'passw8rd')     
       }
      
-      beforeAll(()=>server.listen())
-      afterAll(()=>server.close())
-      beforeEach(()=>{
-         countRequest=0;      
-      })
-      afterEach(()=>{
-         server.resetHandlers()
-      })
+     
 
       it('has submit button enabled when the user type password and repassowrd',()=>{
          render(<SignUp/>)
@@ -196,18 +211,97 @@ describe('sign up page',()=>{
    })
 
    describe('translations',()=>{
+
       it('intitally display english language when loading the form',()=>{
-         render(<SignUp/>)
-        
-           expect(screen.queryByRole('heading',{name:'Heading For Sign Up'})).toBeInTheDocument()
+         render(<SignUp/>)     
+           expect(screen.queryByRole('heading',{name:TRANSLATIONS_EN.headingTitle})).toBeInTheDocument()
            expect(screen.getByText(TRANSLATIONS_EN.userName)).toBeInTheDocument()
            expect(screen.getByText(TRANSLATIONS_EN.email)).toBeInTheDocument()
            expect(screen.getByText(TRANSLATIONS_EN.password)).toBeInTheDocument()
            expect(screen.getByText(TRANSLATIONS_EN.retypePassword)).toBeInTheDocument()
-           expect(screen.getByText(TRANSLATIONS_EN.submit)).toBeInTheDocument()
-         
-        
+           expect(screen.getByText(TRANSLATIONS_EN.submit)).toBeInTheDocument()   
       })
+
+      it('display german language when pressing on german flag',()=>{
+         const MockedSignUp=()=>(
+            <>
+              <SignUp/>
+              <Translator/>
+            </>
+           )
+           render(<MockedSignUp/>)     
+           const flagButton=screen.queryByTestId('de-flag') as HTMLElement
+           userEvent.click(flagButton)
+           expect(screen.queryByRole('heading',{name:TRANSLATIONS_DE.headingTitle})).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_DE.userName)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_DE.email)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_DE.password)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_DE.retypePassword)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_DE.submit)).toBeInTheDocument()   
+      })
+
+      
+      it('display english language when pressing on england flag',()=>{
+         const MockedSignUp=()=>(
+            <>
+              <SignUp/>
+              <Translator/>
+            </>
+           )
+           render(<MockedSignUp/>)     
+           const flagButton=screen.queryByTestId('en-flag') as HTMLElement
+           userEvent.click(flagButton)
+           expect(screen.queryByRole('heading',{name:TRANSLATIONS_EN.headingTitle})).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.userName)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.email)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.password)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.retypePassword)).toBeInTheDocument()
+           expect(screen.getByText(TRANSLATIONS_EN.submit)).toBeInTheDocument()   
+      })
+
+      it('send accept-language to be en when submiting the form',async()=>{
+         render(<SignUp/>)  
+         const userNameInput=screen.getByLabelText('User Name') as HTMLInputElement
+         const emailInput=screen.getByLabelText('Email') as HTMLInputElement
+         const passwordInput=screen.getByLabelText('Password') as HTMLInputElement
+         const rePasswordInput=screen.getByLabelText('Retype Password') as HTMLInputElement
+         const button=screen.queryByRole('button',{name:'Submit'}) as HTMLElement
+         userEvent.type(userNameInput,'mostafa')
+         userEvent.type(emailInput,'mostafa@hotmail.com')
+         userEvent.type(passwordInput,'passw8rd')
+         userEvent.type(rePasswordInput,'passw8rd') 
+         userEvent.click(button) 
+         await waitForElementToBeRemoved(screen.getByRole('form')) 
+         expect(acceptlangHeader).toBe('en')  
+
+      })
+
+      it('send accept-language to be de when submiting the form',async()=>{
+         const MockedSignUp=()=>(
+            <>
+              <SignUp/>
+              <Translator/>
+            </>
+           )
+         render(<MockedSignUp/>)     
+         const flagButton=screen.queryByTestId('de-flag') as HTMLElement
+         userEvent.click(flagButton)
+         const userNameInput=screen.getByLabelText(TRANSLATIONS_DE.userName) as HTMLInputElement
+         const emailInput=screen.getByLabelText(TRANSLATIONS_DE.email) as HTMLInputElement
+         const passwordInput=screen.getByLabelText(TRANSLATIONS_DE.password) as HTMLInputElement
+         const rePasswordInput=screen.getByLabelText(TRANSLATIONS_DE.retypePassword) as HTMLInputElement
+         const button=screen.queryByRole('button',{name:TRANSLATIONS_DE.submit}) as HTMLElement
+         userEvent.type(userNameInput,'mostafa')
+         userEvent.type(emailInput,'mostafa@hotmail.com')
+         userEvent.type(passwordInput,'passw8rd')
+         userEvent.type(rePasswordInput,'passw8rd') 
+         userEvent.click(button) 
+         await waitForElementToBeRemoved(screen.getByRole('form')) 
+         expect(acceptlangHeader).toBe('de')  
+
+      })
+
+
    })
  
 })
